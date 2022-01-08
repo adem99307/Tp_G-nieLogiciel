@@ -1,5 +1,5 @@
 <template>
-  <div class="container" id="gantt"></div>
+  <div id="gantt"></div>
 </template>
 
 <style>
@@ -10,65 +10,123 @@
 </style>
 
 <script>
-import anychart from 'anychart'
 export default {
-  created() {
+  mounted: function () {
     let tempData = this.$store.state.data
-    anychart.onDocumentReady(function () {
-      var data = []
-      var currentDate = new Date()
-      for (const temp of tempData) {
-        if(temp.predecesseur == "")
-        {
-          let t = {
-            id : data.length + 1,
-            name : temp.name_tache,
-            actualStart : new Date().toISOString().slice(0, 10),
-            actualEnd : currentDate.setDate(currentDate.getDate() + temp.time_tache),
-            children : []
-          }
-          data.push(t)
-        }
-      }
-
-      for (const temp of tempData)
-      {
-        if(temp.predecesseur !== "")
-        {
-          let statement = temp.predecesseur.split(';')
-          for (const word of statement)
+      anychart.onDocumentReady(function () {
+        // create data
+        var data = [
           {
-            let t = {
-              id : data.length + 1,
-              name : temp.name_tache,
-              actualStart : new Date().toISOString().slice(0, 10),
-              actualEnd : currentDate.setDate(currentDate.getDate() + temp.time_tache)
-            }
-            for (let i = 0;i<data.length;i++)
-            {
-              if(data[i].name == word)
+            id: "1",
+            name: "Development",
+            actualStart: "2018-01-15",
+            actualEnd: "2018-03-10",
+            children: [
               {
-                data[i].children.push(t)
-              }else{
-                data.push(t)
+                id: "1_1",
+                name: "Analysis",
+                actualStart: "2018-01-15",
+                actualEnd: "2018-01-25"
+              },
+              {
+                id: "1_2",
+                name: "Design",
+                actualStart: "2018-01-20",
+                actualEnd: "2018-02-04"
+              },
+              {
+                id: "1_3",
+                name: "Meeting",
+                actualStart: "2018-02-05",
+                actualEnd: "2018-02-05"
+              },
+              {
+                id: "1_4",
+                name: "Implementation",
+                actualStart: "2018-02-05",
+                actualEnd: "2018-02-24"
+              },
+              {
+                id: "1_5",
+                name: "Testing",
+                actualStart: "2018-02-25",
+                actualEnd: "2018-03-10"
+              }
+            ]}
+        ];
+        data = []
+        for (const temp of tempData) {
+          if(temp.dependsOn == undefined)
+          {
+            var t = {
+              id: temp.id,
+              name: temp.name,
+              duration : temp.duration,
+              actualStart: (new Date().toISOString().slice(0,10)),
+              actualEnd: new Date(Date.now() + temp.duration * 24*60*60*1000),
+              children : []
+            }
+            data.push(t)
+          }
+        }
+
+        for (const temp of tempData) {
+          var k = []
+          var b= 0
+          if(temp.dependsOn !== undefined)
+          {
+            for (const dep of temp.dependsOn) {
+              for (var r of tempData)
+              {
+                if(r.id == dep)
+                {
+
+                  k.push(r)
+                }
+              }
+            }
+            for (var e of k)
+            {
+              let tf = e.duration
+              if(tf > b)
+              {
+                b = tf
+              }
+            }
+
+            for (const dep of temp.dependsOn) {
+              for (var i = 0;i<data.length;i++) {
+                if(data[i].id == dep && data[i].duration == b)
+                {
+                  var t = {
+                    id: `${data[i].id}_${(data[i].children.length + 1).toString()}`,
+                    name: temp.name,
+                    actualStart: data[i].actualEnd,
+                    actualEnd: new Date(Date.parse(data[i].actualEnd)+ temp.duration * 24*60*60*1000),
+                  }
+                  data[i].children.push(t)
+                  b = 0
+                }
               }
             }
           }
+          k = []
+          b = 0
         }
-      }
 
-
-      var treeData = anychart.data.tree(data, "as-tree");
-
-      var chart = anychart.ganttProject();
-
-      chart.data(treeData);
-
-      chart.container("gantt");
-
-      chart.draw();
-      chart.fitAll();
-    });
+        // create a data tree
+        var treeData = anychart.data.tree(data, "as-tree");
+        // create a chart
+        var chart = anychart.ganttProject();
+        // set the data
+        chart.data(treeData);
+        // set the container id
+        chart.container("gantt");
+        // initiate drawing the chart
+        chart.draw();
+        // fit elements to the width of the timeline
+        chart.fitAll();
+      });
   }
 }
 </script>

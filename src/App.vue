@@ -11,14 +11,18 @@
         </tr>
         </thead>
         <tbody>
-        <tr v-for="(value,index) in $store.state.data" :key="index">
+        <tr v-for="(value,index) in data" :key="index">
+
           <td>{{index + 1}}</td>
-          <td contenteditable="true">{{value.name_tache}}</td>
-          <td> <span contenteditable="true">{{value.time_tache}}</span> Jours</td>
-          <td contenteditable="true"><span v-if="value.predecesseur == ''">-</span> <span v-else>{{value.predecesseur}} </span> </td>
+          <td><input type="text" class="none" v-model="value.name" /> </td>
+          <td><input type="text" class="none" v-model="value.duration" /> Jours</td>
+          <td>
+            <input v-if="value.dependsOn !== undefined" class="none" type="text" v-model="value.dependsOn"></input>
+          </td>
         </tr>
         </tbody>
       </table>
+      <button @click="change" class="btn btn-success">Modifier</button>
       <div v-if="!progress" class="charts">
         <div class="d-flex align-items-start">
           <div class="nav flex-column nav-pills me-3" id="v-pills-tab" role="tablist" aria-orientation="vertical">
@@ -37,7 +41,11 @@
   </div>
   </div>
 </template>
-
+<style>
+.none{
+  border: none;
+}
+</style>
 <script>
 import pertComponent from './components/pertComponent'
 import ganttComponent from './components/ganttComponent'
@@ -45,14 +53,21 @@ export default {
   data : () =>{
     return{
       progress : false,
+      data : []
     }
   },
   components : {
     pertComponent,
     ganttComponent
   },
+  methods : {
+    change()
+    {
+      this.$store.commit('SET_DATA',this.data)
+    }
+  },
   created() {
-
+    this.data = this.$store.state.data
   }
 }
 </script>
