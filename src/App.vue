@@ -49,6 +49,7 @@
 <script>
 import pertComponent from './components/pertComponent'
 import ganttComponent from './components/ganttComponent'
+import json from '../data/data.json'
 export default {
   data : () =>{
     return{
@@ -63,11 +64,21 @@ export default {
   methods : {
     change()
     {
-      this.$store.commit('SET_DATA',this.data)
+      localStorage.setItem('data',JSON.stringify(this.data))
+      this.$store.commit('SET_DATA',JSON.parse(localStorage.getItem('data')))
+      window.location.reload()
     }
   },
   created() {
-    this.data = this.$store.state.data
+    if(localStorage.getItem('data') == undefined)
+    {
+      localStorage.setItem('data',JSON.stringify(json))
+      this.$store.commit('SET_DATA',JSON.parse(localStorage.getItem('data')))
+      this.data = this.$store.state.data
+    }else{
+      this.$store.commit('SET_DATA',JSON.parse(localStorage.getItem('data')))
+      this.data = this.$store.state.data
+    }
   }
 }
 </script>
